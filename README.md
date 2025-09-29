@@ -364,7 +364,7 @@ CORS_ORIGIN=https://your-domain.com
 
 ## 🐳 Docker
 
-### Docker Compose (рекомендуется)
+### Вариант 1: Docker Compose (отдельный файл)
 
 Проект включает готовый `docker-compose.yml` файл для запуска вместе с n8n:
 
@@ -382,6 +382,31 @@ docker-compose down
 docker-compose logs -f document-dealer
 ```
 
+### Вариант 2: Добавление в существующий docker-compose.yml (рекомендуется)
+
+Если у вас уже есть n8n с docker-compose, добавьте Document Dealer в ваш существующий файл:
+
+```yaml
+# Добавьте этот сервис в ваш docker-compose.yml
+document-dealer:
+  image: node:18-alpine
+  container_name: document_dealer
+  restart: unless-stopped
+  ports:
+    - "3002:3002"
+  environment:
+    - NODE_ENV=production
+    - PORT=3002
+    - DATABASE_URL=file:./data/dev.db
+    - JWT_SECRET=your-secret-key
+    - N8N_WEBHOOK_URL=https://n8n.n8nvibeauto.ru/webhook/document-generator
+    - CORS_ORIGIN=https://your-domain.com
+  volumes:
+    - ./document-dealer-data:/app/data
+  networks:
+    - caddy_net  # Ваша существующая сеть
+```
+
 ### Структура Docker
 
 - **document-dealer**: Основное приложение (порт 3002)
@@ -390,15 +415,19 @@ docker-compose logs -f document-dealer
 
 ### Настройка для совместной работы с существующей n8n
 
-1. Убедитесь, что ваша n8n доступна по адресу `http://n8n:5678`
-2. Настройте в `.env`:
-   ```bash
-   N8N_WEBHOOK_URL=http://n8n:5678/webhook/document-generator
+1. **Добавьте Document Dealer в ваш docker-compose.yml** (см. пример выше)
+2. **Настройте Caddy** для проксирования Document Dealer:
+   ```caddyfile
+   # Добавьте в ваш Caddyfile
+   document.n8nvibeauto.ru {
+       reverse_proxy document_dealer:3002
+   }
    ```
 
-3. Если n8n использует другой порт, измените в docker-compose.yml:
-   ```yaml
-   N8N_WEBHOOK_URL=http://n8n:YOUR_PORT/webhook/document-generator
+3. **Настройте переменные окружения** в `.env`:
+   ```bash
+   N8N_WEBHOOK_URL=https://n8n.n8nvibeauto.ru/webhook/document-generator
+   CORS_ORIGIN=https://document.n8nvibeauto.ru
    ```
 
 ### Health Check

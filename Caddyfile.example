@@ -1,0 +1,31 @@
+# Пример настройки Caddy для Document Dealer
+# Добавьте этот блок в ваш существующий Caddyfile
+
+# n8n (ваш существующий subdomain)
+n8n.n8nvibeauto.ru {
+    reverse_proxy n8n_app:5678
+}
+
+# Document Dealer (новый subdomain)
+document.n8nvibeauto.ru {
+    reverse_proxy document_dealer:3002
+}
+
+# Альтернативно, можно использовать path-based routing
+# n8n.n8nvibeauto.ru {
+#     reverse_proxy n8n_app:5678
+#
+#     # Document Dealer на отдельном пути
+#     handle_path /documents* {
+#         reverse_proxy document_dealer:3002
+#     }
+# }
+
+# Или на основном домене с поддоменом
+# your-main-domain.com {
+#     reverse_proxy n8n_app:5678
+# }
+#
+# documents.your-main-domain.com {
+#     reverse_proxy document_dealer:3002
+# }
