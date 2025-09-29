@@ -1,0 +1,55 @@
+# Диагностика проблем с Document Dealer контейнером
+
+## Шаг 1: Проверьте логи контейнера
+docker compose logs -f document_dealer
+
+## Шаг 2: Проверьте статус всех контейнеров
+docker compose ps
+
+## Шаг 3: Проверьте, работает ли база данных
+docker compose logs -f document-dealer 2>&1 | head -20
+
+## Шаг 4: Проверьте переменные окружения
+docker compose exec document_dealer env
+
+## Шаг 5: Проверьте, что файлы .env корректные
+cat .env
+
+## Шаг 6: Проверьте volumes
+docker volume ls
+ls -la document-dealer-data/
+
+## Шаг 7: Тестирование вручную
+docker compose exec document_dealer node -e "console.log('Node.js works')"
+
+## Шаг 8: Проверьте health endpoint
+curl -f http://localhost:3002/api/health || echo "Health check failed"
+
+## Шаг 9: Если проблема с CORS или сертификатами
+# Проверьте, что домен доступен:
+curl -I https://doc.n8nvibeauto.ru
+
+# Проверьте сертификат:
+openssl s_client -servername doc.n8nvibeauto.ru -connect doc.n8nvibeauto.ru:443 2>/dev/null | openssl x509 -noout -dates
+
+## Шаг 10: Если контейнер не может подключиться к n8n
+# Проверьте, что n8n доступен:
+curl -f https://n8n.n8nvibeauto.ru/ || echo "n8n not accessible"
+
+# Проверьте webhook URL:
+curl -X POST https://n8n.n8nvibeauto.ru/webhook-test/docs -H "Content-Type: application/json" -d '{"test": "data"}'
+
+## Шаг 11: Если проблема с базой данных
+# Проверьте подключение к SQLite:
+docker compose exec document_dealer ls -la /app/data/
+
+# Или если PostgreSQL:
+docker compose exec document-dealer psql -h postgres -U document_user -d document_dealer -c "SELECT 1;"
+
+## Шаг 12: Остановка и перезапуск
+docker compose down document-dealer
+docker compose up -d document-dealer
+
+## Шаг 13: Полный перезапуск всех сервисов
+docker compose down
+docker compose up -d
