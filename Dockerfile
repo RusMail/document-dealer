@@ -7,9 +7,6 @@ WORKDIR /app
 # Копируем package.json и package-lock.json
 COPY package*.json ./
 
-# Устанавливаем зависимости
-RUN npm ci --only=production
-
 # Копируем остальной код
 COPY . .
 
@@ -20,6 +17,9 @@ RUN mkdir -p /app/data /app/uploads /app/n8n
 ENV NODE_ENV=production
 ENV PORT=3002
 ENV DATABASE_URL="file:./data/dev.db"
+
+# Устанавливаем все зависимости (включая devDependencies для Prisma)
+RUN npm ci
 
 # Генерируем Prisma клиент
 RUN npx prisma generate
