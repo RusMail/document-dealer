@@ -1,0 +1,42 @@
+# Исправление проблемы с Docker volumes
+
+## Проблема: Volume не найден
+
+# Шаг 1: Проверьте все существующие volumes
+docker volume ls
+
+# Шаг 2: Найдите volumes, связанные с document-dealer
+docker volume ls | grep document
+
+# Шаг 3: Проверьте volumes по имени контейнера
+docker volume ls | grep 88b08c479250
+
+# Шаг 4: Если volume не найден, проверьте:
+ls -la document-dealer-data/
+
+# Шаг 5: Создайте volume вручную (если нужно)
+docker volume create document-dealer-data
+
+# Шаг 6: Проверьте, что volume создан
+docker volume ls | grep document
+
+# Шаг 7: Если volume поврежден, удалите его
+docker volume rm document-dealer-data || true
+
+# Шаг 8: Запустите контейнер заново
+docker compose up -d document-dealer
+
+# Шаг 9: Альтернативное решение - запустите без volume
+# Временно закомментируйте volumes в docker-compose.yml:
+# volumes: []
+
+# Шаг 10: Если проблема с сетью или переменными
+# Проверьте переменные окружения:
+docker compose exec document-dealer env
+
+# Шаг 11: Проверьте подключение к n8n
+curl -f https://n8n.n8nvibeauto.ru/ || echo "n8n not accessible"
+
+# Шаг 12: Если ничего не помогает, пересоздайте контейнер
+docker compose down document-dealer
+docker compose up --build -d document-dealer
