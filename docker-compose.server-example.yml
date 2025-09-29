@@ -19,7 +19,7 @@ services:
       - DATABASE_URL=${DATABASE_URL:-file:./data/dev.db}
       - JWT_SECRET=${JWT_SECRET:-your-secret-key}
       - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL:-https://n8n.n8nvibeauto.ru/webhook/document-generator}
-      - CORS_ORIGIN=${CORS_ORIGIN:-https://your-domain.com}
+      - CORS_ORIGIN=${CORS_ORIGIN:-https://doc.n8nvibeauto.ru}
     volumes:
       - ./document-dealer-data:/app/data
       - ./document-dealer-uploads:/app/uploads

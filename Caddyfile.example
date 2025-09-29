@@ -7,7 +7,7 @@ n8n.n8nvibeauto.ru {
 }
 
 # Document Dealer (новый subdomain)
-document.n8nvibeauto.ru {
+doc.n8nvibeauto.ru {
     reverse_proxy document_dealer:3002
 }
 

@@ -53,7 +53,7 @@ nano .env
 - `JWT_SECRET` - секретный ключ для JWT токенов
 - `N8N_WEBHOOK_URL` - URL вебхука n8n (http://n8n:5678 для Docker)
 - `DATABASE_URL` - URL базы данных
-- `CORS_ORIGIN` - ваш домен для CORS
+- `CORS_ORIGIN` - ваш домен для CORS (https://doc.n8nvibeauto.ru)
 
 #### Вариант 2: Установка без Docker
 ```bash
@@ -247,7 +247,7 @@ N8N_WEBHOOK_URL=https://your-domain.com/webhook/document-generator
 DATABASE_URL="postgresql://username:password@your-db-host:5432/document_dealer"
 
 # Настройте CORS для вашего домена
-CORS_ORIGIN=https://your-domain.com
+CORS_ORIGIN=https://doc.n8nvibeauto.ru
 
 # Включите продакшн режим
 NODE_ENV=production
@@ -349,7 +349,7 @@ JWT_SECRET=your-super-secret-jwt-key-here
 N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/document-generator
 DATABASE_URL="postgresql://username:password@host:5432/document_dealer"
 NODE_ENV=production
-CORS_ORIGIN=https://your-domain.com
+CORS_ORIGIN=https://doc.n8nvibeauto.ru
 ```
 
 ### Пример .env файла для Docker разработки:
@@ -359,7 +359,7 @@ JWT_SECRET=your-super-secret-jwt-key-here
 N8N_WEBHOOK_URL=http://n8n:5678/webhook/document-generator
 DATABASE_URL="file:./data/dev.db"
 NODE_ENV=production
-CORS_ORIGIN=https://your-domain.com
+CORS_ORIGIN=https://doc.n8nvibeauto.ru
 ```
 
 ## 🐳 Docker
@@ -400,7 +400,7 @@ document-dealer:
     - DATABASE_URL=file:./data/dev.db
     - JWT_SECRET=your-secret-key
     - N8N_WEBHOOK_URL=https://n8n.n8nvibeauto.ru/webhook/document-generator
-    - CORS_ORIGIN=https://your-domain.com
+    - CORS_ORIGIN=https://doc.n8nvibeauto.ru
   volumes:
     - ./document-dealer-data:/app/data
   networks:
@@ -419,7 +419,7 @@ document-dealer:
 2. **Настройте Caddy** для проксирования Document Dealer:
    ```caddyfile
    # Добавьте в ваш Caddyfile
-   document.n8nvibeauto.ru {
+   doc.n8nvibeauto.ru {
        reverse_proxy document_dealer:3002
    }
    ```
@@ -427,7 +427,7 @@ document-dealer:
 3. **Настройте переменные окружения** в `.env`:
    ```bash
    N8N_WEBHOOK_URL=https://n8n.n8nvibeauto.ru/webhook/document-generator
-   CORS_ORIGIN=https://document.n8nvibeauto.ru
+   CORS_ORIGIN=https://doc.n8nvibeauto.ru
    ```
 
 ### Health Check

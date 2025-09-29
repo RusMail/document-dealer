@@ -26,9 +26,9 @@ cp .env.example .env
 nano .env
 
 # Минимальные настройки для .env:
-# JWT_SECRET=ваш-секретный-ключ
+# JWT_SECRET=32fbc0ea9082b33151327dd042cd3dffe2ab623f81e4dff4d2b8102f4889b60e
 # N8N_WEBHOOK_URL=https://n8n.n8nvibeauto.ru/webhook/document-generator
-# CORS_ORIGIN=https://document.n8nvibeauto.ru
+# CORS_ORIGIN=https://doc.n8nvibeauto.ru
 
 ## Шаг 4: Добавьте Document Dealer в ваш docker-compose.yml
 
@@ -49,7 +49,7 @@ document-dealer:
     - DATABASE_URL=file:./data/dev.db
     - JWT_SECRET=ваш-секретный-ключ
     - N8N_WEBHOOK_URL=https://n8n.n8nvibeauto.ru/webhook/document-generator
-    - CORS_ORIGIN=https://document.n8nvibeauto.ru
+    - CORS_ORIGIN=https://doc.n8nvibeauto.ru
   volumes:
     - ./document-dealer-data:/app/data
   networks:
@@ -60,9 +60,9 @@ document-dealer:
 # 1. Откройте Caddyfile
 nano ../Caddyfile
 
-# 2. Добавьте блок для Document Dealer (замените document.n8nvibeauto.ru на ваш домен):
+# 2. Добавьте блок для Document Dealer (замените doc.n8nvibeauto.ru на ваш домен):
 
-document.n8nvibeauto.ru {
+doc.n8nvibeauto.ru {
     reverse_proxy document_dealer:3002
 }
 
@@ -86,7 +86,7 @@ docker-compose logs -f document-dealer
 curl http://localhost:3002/api/health
 
 # 2. Откройте браузер и перейдите на:
-# https://document.n8nvibeauto.ru
+# https://doc.n8nvibeauto.ru
 
 # 3. Данные для входа:
 # Email: admin@example.com
