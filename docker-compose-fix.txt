@@ -1,0 +1,88 @@
+# Исправление проблем с Document Dealer
+
+## Проблема 1: Сервис не найден в docker-compose
+
+# 1. Проверьте ваш docker-compose.yml
+cat docker-compose.yml | grep -A 20 "document-dealer"
+
+# 2. Если сервис не добавлен, добавьте его:
+# nano docker-compose.yml
+# Добавьте этот блок в раздел services:
+
+document-dealer:
+  image: node:18-alpine
+  container_name: document_dealer
+  restart: unless-stopped
+  ports:
+    - "3002:3002"
+  environment:
+    - NODE_ENV=production
+    - PORT=3002
+    - DATABASE_URL=file:./data/dev.db
+    - JWT_SECRET=32fbc0ea9082b33151327dd042cd3dffe2ab623f81e4dff4d2b8102f4889b60e
+    - N8N_WEBHOOK_URL=https://n8n.n8nvibeauto.ru/webhook/document-generator
+    - CORS_ORIGIN=https://doc.n8nvibeauto.ru
+  volumes:
+    - ./document-dealer-data:/app/data
+  networks:
+    - caddy_net
+
+# 3. Удалите version: "3.8" из файла (это устарело)
+# Замените на networks: ... в конце файла
+
+## Проблема 2: Caddy сертификаты
+
+# 1. Проверьте ваш Caddyfile
+cat Caddyfile | grep -A 5 "doc.n8nvibeauto"
+
+# 2. Если блок не найден, добавьте:
+# nano Caddyfile
+# Добавьте:
+
+doc.n8nvibeauto.ru {
+    reverse_proxy document_dealer:3002
+}
+
+# 3. Перезагрузите Caddy
+docker compose restart caddy_proxy
+
+## Проблема 3: DNS и домен
+
+# 1. Проверьте, указывает ли DNS на ваш сервер
+nslookup doc.n8nvibeauto.ru
+
+# 2. Если DNS не настроен, настройте A запись на IP вашего сервера
+
+## Проблема 4: Let's Encrypt сертификаты
+
+# 1. Дождитесь получения сертификата (может занять до 5 минут)
+# 2. Проверьте статус сертификата:
+docker compose logs -f caddy_proxy | grep -i "certificate\|tls\|ssl"
+
+# 3. Или проверьте вручную:
+curl -I https://doc.n8nvibeauto.ru
+
+## Шаг 5: Запуск Document Dealer
+
+# 1. Убедитесь, что сервис добавлен в docker-compose.yml
+docker compose up -d document-dealer
+
+# 2. Проверьте статус
+docker compose ps
+
+# 3. Проверьте логи
+docker compose logs -f document-dealer
+
+# 4. Тестируйте health endpoint
+curl http://localhost:3002/api/health
+
+## Шаг 6: Если ничего не помогает
+
+# 1. Остановите все
+docker compose down
+
+# 2. Удалите volumes Document Dealer
+docker volume rm $(docker volume ls -q | grep document-dealer) || true
+
+# 3. Запустите заново
+docker compose up -d
