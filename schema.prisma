@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  role      String   @default("USER")
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documents Document[]
+  contractors Contractor[]
+}
+
+model Contractor {
+  id              String   @id @default(cuid())
+  shortName       String
+  fullName        String
+  ogrn            String   @unique
+  inn             String   @unique
+  kpp             String?
+  okpo            String?
+  okved           String?
+  legalAddress    String
+  actualAddress   String?
+  checkingAccount String?
+  bankName        String?
+  correspondentAccount String?
+  bik             String?
+  director        String?
+  phone           String?
+  email           String?
+  createdBy       String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  creator     User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  documents   Document[] @relation("DocumentContractor")
+  customers   Document[] @relation("DocumentCustomer")
+}
+
+model Document {
+  id          String      @id @default(cuid())
+  type        String
+  contractorId String
+  customerId  String?
+  amount      Float
+  date        DateTime
+  status      String      @default("PENDING")
+  webhookUrl  String?
+  n8nResponse String?
+  createdBy   String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  contractor  Contractor  @relation("DocumentContractor", fields: [contractorId], references: [id], onDelete: Cascade)
+  customer    Contractor? @relation("DocumentCustomer", fields: [customerId], references: [id], onDelete: SetNull)
+  creator     User        @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+}
