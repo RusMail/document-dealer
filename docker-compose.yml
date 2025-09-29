@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # Document Dealer - основное приложение
+  document-dealer:
+    build: .
+    container_name: document-dealer
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - DATABASE_URL=${DATABASE_URL:-file:./data/dev.db}
+      - JWT_SECRET=${JWT_SECRET}
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://n8n:5678}
+      - CORS_ORIGIN=${CORS_ORIGIN:-https://your-domain.com}
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+    depends_on:
+      - n8n
+    networks:
+      - document-dealer-network
+
+  # N8N (если нужно добавить, но предполагается что уже запущен)
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - N8N_EDITOR_BASE_URL=${N8N_EDITOR_BASE_URL:-https://your-domain.com/}
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL:-https://your-domain.com/}
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE:-Europe/Moscow}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n:/data
+    networks:
+      - document-dealer-network
+
+  # PostgreSQL (опционально, для продакшена)
+  postgres:
+    image: postgres:15
+    container_name: document-dealer-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=document_dealer
+      - POSTGRES_USER=${DB_USER:-document_user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-secure_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - document-dealer-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-document_user} -d document_dealer"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# Сети и volumes
+networks:
+  document-dealer-network:
+    driver: bridge
+
+volumes:
+  n8n_data:
+  postgres_data:

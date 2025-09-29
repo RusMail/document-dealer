@@ -39,6 +39,23 @@ npm install
 ```
 
 ### 3. Настройка окружения
+
+#### Вариант 1: Docker Compose (рекомендуется)
+```bash
+# Создайте файл с переменными окружения
+cp .env.example .env
+
+# Отредактируйте .env файл
+nano .env
+```
+
+**Важные переменные для Docker:**
+- `JWT_SECRET` - секретный ключ для JWT токенов
+- `N8N_WEBHOOK_URL` - URL вебхука n8n (http://n8n:5678 для Docker)
+- `DATABASE_URL` - URL базы данных
+- `CORS_ORIGIN` - ваш домен для CORS
+
+#### Вариант 2: Установка без Docker
 ```bash
 # Скопируйте файл с примером переменных окружения
 cp .env.example .env
@@ -74,6 +91,20 @@ npm run db:seed
 ```
 
 ### 5. Запуск приложения
+
+#### Вариант 1: Docker Compose
+```bash
+# Запустите все сервисы
+docker-compose up -d
+
+# Или соберите и запустите только Document Dealer
+docker-compose up --build document-dealer
+```
+
+Приложение будет доступно по адресу: http://localhost:3002
+n8n будет доступен по адресу: http://localhost:5678
+
+#### Вариант 2: Без Docker
 ```bash
 # Режим разработки
 npm run dev
@@ -311,14 +342,78 @@ openssl rand -hex 32
 [System.Web.Security.Membership]::GeneratePassword(64,0)
 ```
 
-### Пример .env файла:
+### Пример .env файла для продакшена:
 ```bash
 PORT=3002
 JWT_SECRET=your-super-secret-jwt-key-here
 N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/document-generator
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://username:password@host:5432/document_dealer"
 NODE_ENV=production
 CORS_ORIGIN=https://your-domain.com
+```
+
+### Пример .env файла для Docker разработки:
+```bash
+PORT=3002
+JWT_SECRET=your-super-secret-jwt-key-here
+N8N_WEBHOOK_URL=http://n8n:5678/webhook/document-generator
+DATABASE_URL="file:./data/dev.db"
+NODE_ENV=production
+CORS_ORIGIN=https://your-domain.com
+```
+
+## 🐳 Docker
+
+### Docker Compose (рекомендуется)
+
+Проект включает готовый `docker-compose.yml` файл для запуска вместе с n8n:
+
+```bash
+# Запуск всех сервисов
+docker-compose up -d
+
+# Сборка и запуск только Document Dealer
+docker-compose up --build document-dealer
+
+# Остановка всех сервисов
+docker-compose down
+
+# Просмотр логов
+docker-compose logs -f document-dealer
+```
+
+### Структура Docker
+
+- **document-dealer**: Основное приложение (порт 3002)
+- **n8n**: N8N сервис (порт 5678) - может быть уже запущен на вашем сервере
+- **postgres**: PostgreSQL база данных (порт 5432) - опционально
+
+### Настройка для совместной работы с существующей n8n
+
+1. Убедитесь, что ваша n8n доступна по адресу `http://n8n:5678`
+2. Настройте в `.env`:
+   ```bash
+   N8N_WEBHOOK_URL=http://n8n:5678/webhook/document-generator
+   ```
+
+3. Если n8n использует другой порт, измените в docker-compose.yml:
+   ```yaml
+   N8N_WEBHOOK_URL=http://n8n:YOUR_PORT/webhook/document-generator
+   ```
+
+### Health Check
+
+Приложение включает health check endpoint:
+- `GET /api/health` - проверка работоспособности
+
+### Логи и отладка
+
+```bash
+# Просмотр логов приложения
+docker-compose logs -f document-dealer
+
+# Вход в контейнер для отладки
+docker-compose exec document-dealer sh
 ```
 
 ## 🤝 Поддержка
