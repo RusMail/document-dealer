@@ -1,0 +1,76 @@
+# Финальная диагностика Document Dealer
+
+## Проблема: Контейнер перезапускается, но volume создан
+
+### Шаг 1: Проверьте логи контейнера (самая важная команда)
+docker compose logs document-dealer
+
+# Ищите ошибки:
+# - Database connection errors
+# - Environment variable issues
+# - Network connectivity problems
+# - Prisma migration errors
+
+### Шаг 2: Проверьте переменные окружения в контейнере
+docker compose exec document_dealer env | grep -E "(JWT_SECRET|N8N_WEBHOOK_URL|DATABASE_URL)"
+
+### Шаг 3: Тестируйте базу данных
+docker compose exec document-dealer ls -la /app/data/
+docker compose exec document-dealer ls -la /app/data/dev.db || echo "Database file missing"
+
+### Шаг 4: Тестируйте Node.js
+docker compose exec document-dealer node -e "console.log('Node.js version:', process.version)"
+docker compose exec document-dealer node -e "console.log('Current dir:', process.cwd())"
+
+### Шаг 5: Проверьте Prisma подключение
+docker compose exec document-dealer npx prisma db push --accept-data-loss
+
+### Шаг 6: Тестируйте n8n подключение
+curl -f https://n8n.n8nvibeauto.ru/ || echo "n8n not accessible"
+curl -X POST https://n8n.n8nvibeauto.ru/webhook-test/docs -H "Content-Type: application/json" -d '{"test": "data"}'
+
+### Шаг 7: Если проблема с базой данных
+
+# 1. Удалите volume и пересоздайте
+docker compose down document-dealer
+docker volume rm document-dealer-data
+docker compose up -d document-dealer
+
+# 2. Или запустите без volume для теста
+# Временно закомментируйте volumes в docker-compose.yml
+
+### Шаг 8: Если проблема с переменными окружения
+
+# 1. Проверьте .env файл
+cat .env
+
+# 2. Убедитесь, что переменные корректные:
+# JWT_SECRET=32fbc0ea9082b33151327dd042cd3dffe2ab623f81e4dff4d2b8102f4889b60e
+# N8N_WEBHOOK_URL=https://n8n.n8nvibeauto.ru/webhook/document-generator
+# DATABASE_URL="file:./data/dev.db"
+
+### Шаг 9: Если проблема с сетью
+
+# 1. Проверьте, что n8n доступен из контейнера
+docker compose exec document_dealer curl -f https://n8n.n8nvibeauto.ru/ || echo "n8n not accessible from container"
+
+### Шаг 10: Полное решение
+
+# 1. Остановите все
+docker compose down
+
+# 2. Удалите все volumes
+docker volume prune -f
+
+# 3. Удалите образ
+docker image rm node:18-alpine
+
+# 4. Перезапустите
+docker compose up --build -d
+
+### Шаг 11: Мониторинг
+# Запустите логи в фоне и тестируйте
+docker compose logs -f document-dealer &
+sleep 10
+curl http://localhost:3002/api/health
+kill %1
