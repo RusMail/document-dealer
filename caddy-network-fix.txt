@@ -1,0 +1,44 @@
+# Исправление проблемы с сетью между Caddy и n8n
+
+## Проблема: Caddy не может подключиться к n8n_app
+
+### Шаг 1: Проверьте Docker сети
+docker network ls
+docker network inspect caddy_net
+
+### Шаг 2: Проверьте, в какой сети n8n_app
+docker inspect n8n_app | grep -A 10 "NetworkSettings"
+
+### Шаг 3: Если сети разные, добавьте n8n в caddy_net
+# Откройте docker-compose.yml:
+nano /srv/server/docker-compose.yml
+
+# Найдите сервис n8n и добавьте:
+networks:
+  - caddy_net
+
+# Или создайте новую сеть и добавьте все сервисы
+
+### Шаг 4: Исправьте Caddyfile
+# Убедитесь, что используется правильное имя:
+nano /srv/server/Caddyfile
+
+# Должно быть:
+n8n.n8nvibeauto.ru {
+    reverse_proxy n8n_app:5678
+}
+
+### Шаг 5: Проверьте порт n8n_app
+docker compose exec n8n_app netstat -tlnp | grep 5678
+
+### Шаг 6: Если порт не слушается, проверьте переменные n8n
+docker compose exec n8n_app env | grep N8N
+
+### Шаг 7: Перезагрузите сервисы
+docker compose down n8n
+docker compose up -d n8n
+docker compose restart caddy
+
+### Шаг 8: Тестируйте
+curl -f https://n8n.n8nvibeauto.ru/
+curl -f https://doc.n8nvibeauto.ru
