@@ -1,0 +1,113 @@
+# Пошаговая установка Document Dealer на ваш сервер
+
+## Шаг 1: Подготовка
+# Вы уже в папке с n8n (/srv/server)
+
+# 1. Сделайте backup текущего docker-compose.yml
+cp docker-compose.yml docker-compose.yml.backup
+
+# 2. Остановите текущие сервисы (если нужно)
+# docker-compose down
+
+## Шаг 2: Скачайте Document Dealer
+
+# 1. Клонируйте репозиторий
+git clone https://github.com/RusMail/document-dealer.git
+
+# 2. Перейдите в папку Document Dealer
+cd document-dealer
+
+## Шаг 3: Настройка переменных окружения
+
+# 1. Создайте .env файл
+cp .env.example .env
+
+# 2. Отредактируйте .env файл (укажите ваши настройки)
+nano .env
+
+# Минимальные настройки для .env:
+# JWT_SECRET=ваш-секретный-ключ
+# N8N_WEBHOOK_URL=https://n8n.n8nvibeauto.ru/webhook/document-generator
+# CORS_ORIGIN=https://document.n8nvibeauto.ru
+
+## Шаг 4: Добавьте Document Dealer в ваш docker-compose.yml
+
+# 1. Откройте ваш docker-compose.yml для редактирования
+nano ../docker-compose.yml
+
+# 2. Добавьте этот блок в раздел services:
+
+document-dealer:
+  image: node:18-alpine
+  container_name: document_dealer
+  restart: unless-stopped
+  ports:
+    - "3002:3002"
+  environment:
+    - NODE_ENV=production
+    - PORT=3002
+    - DATABASE_URL=file:./data/dev.db
+    - JWT_SECRET=ваш-секретный-ключ
+    - N8N_WEBHOOK_URL=https://n8n.n8nvibeauto.ru/webhook/document-generator
+    - CORS_ORIGIN=https://document.n8nvibeauto.ru
+  volumes:
+    - ./document-dealer-data:/app/data
+  networks:
+    - caddy_net
+
+## Шаг 5: Настройте Caddy для Document Dealer
+
+# 1. Откройте Caddyfile
+nano ../Caddyfile
+
+# 2. Добавьте блок для Document Dealer (замените document.n8nvibeauto.ru на ваш домен):
+
+document.n8nvibeauto.ru {
+    reverse_proxy document_dealer:3002
+}
+
+## Шаг 6: Запуск
+
+# 1. Перейдите обратно в папку сервера
+cd ..
+
+# 2. Запустите новый сервис
+docker-compose up -d document-dealer
+
+# 3. Проверьте статус
+docker-compose ps
+
+# 4. Проверьте логи Document Dealer
+docker-compose logs -f document-dealer
+
+## Шаг 7: Проверка работоспособности
+
+# 1. Проверьте health endpoint
+curl http://localhost:3002/api/health
+
+# 2. Откройте браузер и перейдите на:
+# https://document.n8nvibeauto.ru
+
+# 3. Данные для входа:
+# Email: admin@example.com
+# Пароль: admin123
+
+## Шаг 8: Создание webhook в n8n
+
+# 1. Откройте n8n: https://n8n.n8nvibeauto.ru
+# 2. Создайте новый workflow
+# 3. Добавьте Webhook триггер:
+#    - Method: POST
+#    - Path: /webhook/document-generator
+# 4. Настройте обработку данных
+# 5. Активируйте workflow
+
+## Шаг 9: Тестирование
+
+# 1. В Document Dealer создайте тестовый документ
+# 2. Документ должен отправиться в n8n по webhook
+# 3. n8n обработает документ и вернет результат
+
+# Если возникнут проблемы:
+# docker-compose logs -f document-dealer
+# docker-compose logs -f n8n_app
