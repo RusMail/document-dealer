@@ -1,0 +1,58 @@
+# Очистка дублированных контейнеров n8n
+
+## Проблема: Два контейнера n8n
+
+# Шаг 1: Остановите новый контейнер n8n
+docker compose down n8n
+
+# Шаг 2: Удалите сервис n8n из docker-compose.yml
+# Откройте файл:
+nano ../docker-compose.yml
+
+# Удалите этот блок:
+# n8n:
+#   image: n8nio/n8n:latest
+#   container_name: n8n_app
+#   restart: unless-stopped
+#   volumes:
+#     - ./n8n-data:/home/node/.n8n
+#   environment:
+#     - N8N_HOST=n8n.n8nvibeauto.ru
+#     - WEBHOOK_URL=https://n8n.n8nvibeauto.ru/
+#     - TZ=Asia/OmSk
+#     - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
+#     - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+#     - N8N_RUNNERS_ENABLED=true
+#     - NODE_ENV=production
+#     - N8N_LOG_LEVEL=debug
+#     - N8N_LOG_OUTPUT=console
+#     - N8N_PROTOCOL=https
+#     - N8N_WEBHOOK_URL=https://n8n.n8nvibeauto.ru/
+#     - N8N_SECURE_COOKIE=true
+#     - N8N_PAYLOAD_SIZE_MAX=16
+#   networks:
+#     - caddy_net
+
+# Шаг 3: Оставьте только ваш существующий n8n_app
+# Убедитесь, что он работает:
+docker ps | grep n8n
+
+# Шаг 4: Проверьте, что Document Dealer работает
+curl http://localhost:3002/api/health
+
+# Шаг 5: Проверьте подключение к n8n
+curl -f https://n8n.n8nvibeauto.ru/ || echo "n8n not accessible"
+
+# Шаг 6: Если нужно, настройте Caddy для Document Dealer
+# Добавьте в Caddyfile:
+# doc.n8nvibeauto.ru {
+#     reverse_proxy document_dealer:3002
+# }
+
+# Шаг 7: Перезагрузите Caddy
+docker compose restart caddy_proxy
+
+# Шаг 8: Финальная проверка
+docker ps
+curl http://localhost:3002/api/health
+curl -I https://doc.n8nvibeauto.ru
