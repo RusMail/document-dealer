@@ -53,7 +53,7 @@ nano .env
 - `JWT_SECRET` - секретный ключ для JWT токенов
 - `N8N_WEBHOOK_URL` - URL вебхука n8n (http://n8n:5678 для Docker)
 - `DATABASE_URL` - URL базы данных
-- `CORS_ORIGIN` - ваш домен для CORS (https://doc.n8nvibeauto.ru)
+- `CORS_ORIGIN` - ваш домен для CORS 
 
 #### Вариант 2: Установка без Docker
 ```bash
@@ -143,7 +143,7 @@ npm start
 
 ### Настройка webhook в n8n
 
-1. Откройте n8n: https://n8n.n8nvibeauto.ru
+1. Откройте n8n: 
 2. Создайте новый workflow
 3. Добавьте **Webhook** триггер с HTTP Method: POST и Path: `/webhook-test/docs`
 4. Добавьте **Code** ноду для обработки данных и логирования
@@ -241,7 +241,7 @@ N8N_WEBHOOK_URL=https://your-domain.com/webhook/document-generator
 DATABASE_URL="postgresql://username:password@your-db-host:5432/document_dealer"
 
 # Настройте CORS для вашего домена
-CORS_ORIGIN=https://doc.n8nvibeauto.ru
+CORS_ORIGIN=https:
 
 # Включите продакшн режим
 NODE_ENV=production
@@ -343,7 +343,7 @@ JWT_SECRET=your-super-secret-jwt-key-here
 N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/document-generator
 DATABASE_URL="postgresql://username:password@host:5432/document_dealer"
 NODE_ENV=production
-CORS_ORIGIN=https://doc.n8nvibeauto.ru
+CORS_ORIGIN=
 ```
 
 ### Пример .env файла для Docker разработки:
@@ -353,7 +353,7 @@ JWT_SECRET=your-super-secret-jwt-key-here
 N8N_WEBHOOK_URL=http://n8n:5678/webhook/document-generator
 DATABASE_URL="file:./data/dev.db"
 NODE_ENV=production
-CORS_ORIGIN=https://doc.n8nvibeauto.ru
+CORS_ORIGIN=https:
 ```
 
 ## 🐳 Docker
@@ -393,8 +393,8 @@ document-dealer:
     - PORT=3002
     - DATABASE_URL=file:./data/dev.db
     - JWT_SECRET=your-secret-key
-    - N8N_WEBHOOK_URL=https://n8n.n8nvibeauto.ru/webhook/document-generator
-    - CORS_ORIGIN=https://doc.n8nvibeauto.ru
+    - N8N_WEBHOOK_URL=
+    - CORS_ORIGIN=https:
   volumes:
     - ./document-dealer-data:/app/data
   networks:
@@ -413,15 +413,15 @@ document-dealer:
 2. **Настройте Caddy** для проксирования Document Dealer:
    ```caddyfile
    # Добавьте в ваш Caddyfile
-   doc.n8nvibeauto.ru {
+   {
        reverse_proxy document_dealer:3002
    }
    ```
 
 3. **Настройте переменные окружения** в `.env`:
    ```bash
-   N8N_WEBHOOK_URL=https://n8n.n8nvibeauto.ru/webhook/document-generator
-   CORS_ORIGIN=https://doc.n8nvibeauto.ru
+   N8N_WEBHOOK_URL=
+   CORS_ORIGIN=https:
    ```
 
 ### Health Check
